@@ -8,8 +8,9 @@
 
 #define WIDTH 1136
 #define HEIGHT 640
-const float g = 9.8;
-float t = 0;
+const float G = 9.8;
+const float D_T = 0.04;
+const double PI = acos(-1);
 
 using namespace std::chrono_literals;
 
@@ -22,7 +23,7 @@ public:
         s_y0 = y;
         radius = R;
         color = Color;
-        s_angle = (2 * acos(-1) - angle);
+        s_angle = angle;
         s_v0 = v0;
         m_shape = new sf::CircleShape(radius);
         m_shape->setFillColor(color);
@@ -38,13 +39,13 @@ public:
         return m_shape;
     }
 
-    void setStartPosition(float x0, float y0){
+    void setStartPosition(float x0, float y0) {
         s_x0 = x0;
         s_y0 = y0;
     }
 
     void setAngle(float angle) {
-        s_angle = (2 * acos(-1) - angle);
+        s_angle = angle;
     }
 
     void setInitialSpeed(float v0) {
@@ -69,8 +70,17 @@ public:
 
     void Move(float t) {
         float x = s_x0 + s_v0 * cos(s_angle) * t;
-        float y = s_y0 + s_v0 * sin(s_angle) * t + g * t * t / 2;
+        float y = s_y0 + s_v0 * sin(s_angle) * t + G * t * t / 2;
         this->setPosition(x, y);
+        isCollisionWithWall();
+    }
+
+    void isCollisionWithWall() {
+        if (s_y + radius == HEIGHT) {
+            this->s_angle += PI;
+            this->s_v0 /= 2;
+            std::cout << "Collision" << '\n';
+        }
     }
 
     float getX() {
@@ -123,6 +133,7 @@ bool moveWhenPush(sf::RenderWindow &window, Circle &circle) {
 }
 
 int main() {
+    float t = 0;
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML_Project", sf::Style::Close);
     window.setFramerateLimit(120);
     Circle circle(20., 20., 20, sf::Color::Blue, 0, 20);
@@ -147,12 +158,12 @@ int main() {
                 int y1 = mouse_position.y;
 
                 float d = sqrt(pow((x1 - x0), 2) + pow(y1 - y0, 2));
-                float dy = y0 - y1;
+                float dy = y1 - y0;
                 float dx = x1 - x0;
 
                 float angle = atan(dy / dx);
                 if (dx < 0)
-                    angle += acos(-1);
+                    angle += PI;
 
                 if (dx == 0 and dy == 0) {
                     angle = 0;
@@ -175,7 +186,7 @@ int main() {
 
         update(window, circle);
 //        std::this_thread::sleep_for(10ms);
-        t += 0.04;
+        t += D_T;
     }
 
     return 0;
