@@ -25,6 +25,7 @@ public:
         color = Color;
         s_angle = angle;
         s_v0 = v0;
+        s_t = 0;
         m_shape = new sf::CircleShape(radius);
         m_shape->setFillColor(color);
         m_shape->setOrigin(radius, radius);
@@ -52,6 +53,14 @@ public:
         s_v0 = v0;
     }
 
+    void setSelfTime(float time){
+        s_t = time;
+    }
+
+    void addSelfTime(float time){
+        s_t += time;
+    }
+
     void setPosition(float x, float y) {
         if (x - radius <= 0)
             s_x = radius;
@@ -68,18 +77,21 @@ public:
         m_shape->setPosition(s_x, s_y);
     }
 
-    void Move(float t) {
-        float x = s_x0 + s_v0 * cos(s_angle) * t;
-        float y = s_y0 + s_v0 * sin(s_angle) * t + G * t * t / 2;
-        this->setPosition(x, y);
-        isCollisionWithWall();
-    }
-
-    void isCollisionWithWall() {
-        if (s_y + radius == HEIGHT) {
-            this->s_angle += PI;
-            this->s_v0 /= 2;
-            std::cout << "Collision" << '\n';
+    void Move() {
+        if (s_x + radius < WIDTH) {
+            float x = s_x0 + s_v0 * cos(s_angle) * s_t;
+            float y = s_y0 + s_v0 * sin(s_angle) * s_t + G * s_t * s_t / 2;
+            this->setPosition(x, y);
+        }
+        else{
+            // функция, которая добавляет очки
+            std::cout << "add points" << '\n';
+            std::this_thread::sleep_for(500ms);
+            this->s_v0 = 5;
+            this->s_angle = PI / 2;
+            this->setPosition(250, 150);
+            this->setStartPosition(250, 150);
+            s_t = 0;
         }
     }
 
@@ -107,6 +119,7 @@ private:
     float radius;
     float s_angle;
     float s_v0;
+    float s_t;
 
     sf::CircleShape *m_shape;
     sf::Color color;
@@ -133,10 +146,9 @@ bool moveWhenPush(sf::RenderWindow &window, Circle &circle) {
 }
 
 int main() {
-    float t = 0;
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML_Project", sf::Style::Close);
     window.setFramerateLimit(120);
-    Circle circle(20., 20., 20, sf::Color::Blue, 0, 20);
+    Circle circle(100., 80., 20, sf::Color::Blue, PI/2, 20);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -173,7 +185,7 @@ int main() {
                 circle.setInitialSpeed(d);
                 circle.setAngle(angle);
                 std::cout << circle.getAngle() << '\n';
-                t = 0;
+                circle.setSelfTime(0);
             }
         }
 
@@ -182,11 +194,11 @@ int main() {
             delete circle.getShape();
         }
 
-        circle.Move(t);
+        circle.Move();
 
         update(window, circle);
 //        std::this_thread::sleep_for(10ms);
-        t += D_T;
+        circle.addSelfTime(D_T);
     }
 
     return 0;
