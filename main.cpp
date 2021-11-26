@@ -38,11 +38,12 @@ public:
         s_angle = angle;
         s_v0 = v0;
         s_t = 0;
+
         uploadTexture();
+
         m_shape = new sf::Sprite();
         heat_box = new sf::RectangleShape(sf::Vector2f(2 * s_w, 2 * s_h));
         m_shape->setTexture(m_texture);
-//        m_shape->setScale(0.4, 0.4);
         m_shape->setOrigin(s_w, s_h);
         heat_box->setOrigin(s_w, s_h);
         m_shape->setPosition(s_x, s_y);
@@ -51,11 +52,12 @@ public:
 
     ~Dart() {
         delete m_shape;
+        delete heat_box;
     }
 
     bool uploadTexture() {
         if (!m_texture.loadFromFile("../img/darts.png")) {
-            std::cout << "ERROR when loading bird.png" << std::endl;
+            std::cout << "ERROR when loading darts.png" << std::endl;
             return false;
         }
         m_texture.setSmooth(true);
@@ -64,6 +66,10 @@ public:
 
     sf::Sprite *getShape() {
         return m_shape;
+    }
+
+    void setPushed(bool put) {
+        isPushed = put;
     }
 
     void setStartPosition(float x0, float y0) {
@@ -115,21 +121,25 @@ public:
             this->setPosition(250, 150);
             this->setStartPosition(250, 150);
             s_t = 0;
-        } else if (s_x - s_w + 30 > 0 and s_y - s_h > 0 and s_y + s_h < HEIGHT) {
+            isPushed = false;
+        } else if ((!isPushed and s_y + s_h <= 400) or
+                   (isPushed and s_x - s_w + 30 > 0 and s_y - s_h > 0 and s_y + s_h < HEIGHT)) {
             float x = s_x0 + s_v0 * cos(s_angle) * s_t;
             float y = s_y0 + s_v0 * sin(s_angle) * s_t + G * s_t * s_t / 2;
             this->setPosition(x, y);
             m_shape->setRotation(::getAngle(s_x0, s_y0, s_x, s_y) * (180.0 / PI));
-        }
-        else{
-            // отнятие жизни у игрока
-            std::cout << "remove 1HP" << '\n';
-            std::this_thread::sleep_for(500ms);
-            this->s_v0 = 5;
-            this->s_angle = PI / 2;
-            this->setPosition(250, 150);
-            this->setStartPosition(250, 150);
-            s_t = 0;
+        } else {
+            if (isPushed) {
+                // отнятие жизни у игрока
+                std::cout << "remove 1HP" << '\n';
+                std::this_thread::sleep_for(500ms);
+                this->s_v0 = 5;
+                this->s_angle = PI / 2;
+                this->setPosition(250, 150);
+                this->setStartPosition(250, 150);
+                s_t = 0;
+                isPushed = false;
+            }
         }
     }
 
@@ -153,7 +163,7 @@ public:
         return s_angle;
     }
 
-    void deleteMyself(){
+    void deleteMyself() {
         delete m_shape;
         delete heat_box;
     }
@@ -169,6 +179,7 @@ private:
     float s_v0;
     float s_t;
 
+    bool isPushed = false;
 
     sf::Texture m_texture;
     sf::Sprite *m_shape;
@@ -185,12 +196,13 @@ bool moveWhenPush(sf::RenderWindow &window, Dart &dart) {
     sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
     if ((dart.getX() + dart.getWidth() >= mouse_position.x and dart.getX() - dart.getWidth() <= mouse_position.x) and
         (dart.getY() + dart.getHeight() >= mouse_position.y and dart.getY() - dart.getHeight() <= mouse_position.y)) {
+        dart.setPushed(true);
         while (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             mouse_position = sf::Mouse::getPosition(window);
-//            if (mouse_position.x <= 500)
-                dart.setPosition(mouse_position.x, mouse_position.y);
-//            else
-//                sf::Mouse::setPosition(sf::Vector2i(500, mouse_position.y), window);
+            if (mouse_position.x <= 500)
+            dart.setPosition(mouse_position.x, mouse_position.y);
+            else
+                sf::Mouse::setPosition(sf::Vector2i(500, mouse_position.y), window);
             update(window, dart);
         }
         return true;
@@ -205,7 +217,7 @@ float getDistance(float x0, float y0, float x1, float y1) {
 int main() {
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML_Project", sf::Style::Close);
     window.setFramerateLimit(120);
-    Dart dart(100., 80., 102 / 2, 25 / 2, PI / 2, 20);
+    Dart dart(250., 150., 102 / 2, 25 / 2, 0, 0);
 
     while (window.isOpen()) {
         sf::Event event;
