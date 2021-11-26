@@ -42,17 +42,13 @@ public:
         uploadTexture();
 
         m_shape = new sf::Sprite();
-        heat_box = new sf::RectangleShape(sf::Vector2f(2 * s_w, 2 * s_h));
         m_shape->setTexture(m_texture);
         m_shape->setOrigin(s_w, s_h);
-        heat_box->setOrigin(s_w, s_h);
         m_shape->setPosition(s_x, s_y);
-        heat_box->setPosition(s_x, s_y);
     }
 
     ~Dart() {
         delete m_shape;
-        delete heat_box;
     }
 
     bool uploadTexture() {
@@ -108,7 +104,6 @@ public:
         else
             s_y = y;
         m_shape->setPosition(s_x, s_y);
-        heat_box->setPosition(s_x, s_y);
     }
 
     void Move() {
@@ -165,7 +160,6 @@ public:
 
     void deleteMyself() {
         delete m_shape;
-        delete heat_box;
     }
 
 private:
@@ -183,7 +177,6 @@ private:
 
     sf::Texture m_texture;
     sf::Sprite *m_shape;
-    sf::RectangleShape *heat_box;
 };
 
 void update(sf::RenderWindow &window, Dart &circle) {
@@ -195,7 +188,7 @@ void update(sf::RenderWindow &window, Dart &circle) {
 bool moveWhenPush(sf::RenderWindow &window, Dart &dart) {
     sf::Vector2i mouse_position = sf::Mouse::getPosition(window);
     if ((dart.getX() + dart.getWidth() >= mouse_position.x and dart.getX() - dart.getWidth() <= mouse_position.x) and
-        (dart.getY() + dart.getHeight() >= mouse_position.y and dart.getY() - dart.getHeight() <= mouse_position.y)) {
+        (dart.getY() + dart.getWidth() >= mouse_position.y and dart.getY() - dart.getWidth() <= mouse_position.y)) {
         dart.setPushed(true);
         while (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             mouse_position = sf::Mouse::getPosition(window);
