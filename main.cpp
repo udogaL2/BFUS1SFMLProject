@@ -26,6 +26,90 @@ float getAngle(float x0, float y0, float x1, float y1) {
     return angle;
 }
 
+
+class TextBox {
+public:
+    TextBox(float x, float y, const std::string &text) {
+        s_x = x;
+        s_y = y;
+
+        loadFont();
+        Text = new sf::Text;
+        Text->setFont(Font);
+        Text->setCharacterSize(24);
+        Text->setString(text);
+        Text->setFillColor(sf::Color::White);
+        Text->setPosition(s_x, s_y);
+    }
+
+    ~TextBox() {
+        delete Text;
+    }
+
+    void setText(std::string text) {
+        Text->setString(text);
+    }
+
+    void setPosition(float x, float y) {
+        s_x = x;
+        s_y = y;
+        Text->setPosition(s_x, s_y);
+    }
+
+    sf::Text *getShape() {
+        return Text;
+    }
+
+private:
+    float s_x, s_y;
+
+    sf::Font Font;
+    sf::Text *Text;
+
+    void loadFont() {
+        if (!Font.loadFromFile("../ttf/arial.ttf")) {
+            std::cout << "ERROR when loading arial.ttf" << '\n';
+        }
+    }
+};
+
+
+class Scoreboard {
+public:
+    Scoreboard() {
+        textBox = new TextBox(20, 20, "Number of points: " + std::to_string(s_score));
+    }
+
+    ~Scoreboard() {
+        deleteMyself();
+    }
+
+    void addScore(int score) {
+        s_score += score;
+        update();
+    };
+
+    void update() {
+        textBox->setText("Number of points: " + std::to_string(s_score));
+    }
+
+    sf::Text *getShape() {
+        return textBox->getShape();
+    }
+
+    void deleteMyself(){
+        delete textBox->getShape();
+        delete textBox;
+    }
+
+private:
+    long int s_score = 0;
+
+    ::TextBox *textBox;
+};
+
+Scoreboard scoreboard;
+
 class Dart {
 public:
     Dart(float x, float y, float w, float h, float angle, float v0) {
@@ -48,7 +132,7 @@ public:
     }
 
     ~Dart() {
-        delete m_shape;
+        deleteMyself();
     }
 
     bool uploadTexture() {
@@ -108,8 +192,7 @@ public:
 
     void Move() {
         if (s_x + s_w - 30 >= WIDTH) {
-            // функция, которая добавляет очки
-            std::cout << "add points" << '\n';
+            scoreboard.addScore(5);
             std::this_thread::sleep_for(500ms);
             this->s_v0 = 5;
             this->s_angle = PI / 2;
@@ -125,8 +208,7 @@ public:
             m_shape->setRotation(::getAngle(s_x0, s_y0, s_x, s_y) * (180.0 / PI));
         } else {
             if (isPushed) {
-                // отнятие жизни у игрока
-                std::cout << "remove 1HP" << '\n';
+                scoreboard.addScore(-10);
                 std::this_thread::sleep_for(500ms);
                 this->s_v0 = 5;
                 this->s_angle = PI / 2;
@@ -179,9 +261,10 @@ private:
     sf::Sprite *m_shape;
 };
 
-void update(sf::RenderWindow &window, Dart &circle) {
+void update(sf::RenderWindow &window, Dart &dart, Scoreboard &scoreboard) {
     window.clear();
-    window.draw(*circle.getShape());
+    window.draw(*scoreboard.getShape());
+    window.draw(*dart.getShape());
     window.display();
 }
 
@@ -192,11 +275,15 @@ bool moveWhenPush(sf::RenderWindow &window, Dart &dart) {
         dart.setPushed(true);
         while (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             mouse_position = sf::Mouse::getPosition(window);
-            if (mouse_position.x <= 500)
-            dart.setPosition(mouse_position.x, mouse_position.y);
-            else
+            if (mouse_position.x <= 500) {
+                if (dart.getX() != mouse_position.x and dart.getY() != mouse_position.y)
+                    dart.getShape()->setRotation(
+                            getAngle(dart.getX(), dart.getY(), mouse_position.x, mouse_position.y) * (180.0 / PI));
+                dart.setPosition(mouse_position.x, mouse_position.y);
+            } else {
                 sf::Mouse::setPosition(sf::Vector2i(500, mouse_position.y), window);
-            update(window, dart);
+            }
+            update(window, dart, scoreboard);
         }
         return true;
     }
@@ -206,6 +293,8 @@ bool moveWhenPush(sf::RenderWindow &window, Dart &dart) {
 float getDistance(float x0, float y0, float x1, float y1) {
     return sqrt(pow((x1 - x0), 2) + pow(y1 - y0, 2));
 }
+
+
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML_Project", sf::Style::Close);
@@ -218,6 +307,7 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
                 dart.deleteMyself();
+                scoreboard.deleteMyself();
             }
         }
 
@@ -243,11 +333,12 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
             window.close();
             dart.deleteMyself();
+            scoreboard.deleteMyself();
         }
 
         dart.Move();
 
-        update(window, dart);
+        update(window, dart, scoreboard);
 //        std::this_thread::sleep_for(10ms);
         dart.addSelfTime(D_T);
     }
