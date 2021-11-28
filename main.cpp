@@ -85,30 +85,33 @@ public:
     }
 
     void addScore(int score) {
+        d_s = score;
         s_score += score;
         update();
     };
 
     void update() {
-        textBox->setText("Number of points: " + std::to_string(s_score));
+        textBox->setText("Number of points: " + std::to_string(s_score) + " (added " + std::to_string(d_s) + " points)");
     }
 
     sf::Text *getShape() {
         return textBox->getShape();
     }
 
-    void deleteMyself(){
+    void deleteMyself() {
         delete textBox->getShape();
         delete textBox;
     }
 
 private:
     long int s_score = 0;
+    int d_s;
 
     ::TextBox *textBox;
 };
 
 Scoreboard scoreboard;
+sf::Sprite background;
 
 class Dart {
 public:
@@ -191,8 +194,9 @@ public:
     }
 
     void Move() {
-        if (s_x + s_w - 30 >= WIDTH) {
-            scoreboard.addScore(5);
+        if ((s_x + s_w - 30 >= WIDTH and (s_y < 64 or s_y > 414)) or
+            (s_x + s_w - 10 >= WIDTH and !(s_y < 64 or s_y > 414))) {
+            scoreboard.addScore(getPoints());
             std::this_thread::sleep_for(500ms);
             this->s_v0 = 5;
             this->s_angle = PI / 2;
@@ -212,8 +216,8 @@ public:
                 std::this_thread::sleep_for(500ms);
                 this->s_v0 = 5;
                 this->s_angle = PI / 2;
-                this->setPosition(250, 150);
-                this->setStartPosition(250, 150);
+                this->setPosition(240, 150);
+                this->setStartPosition(240, 150);
                 s_t = 0;
                 isPushed = false;
             }
@@ -259,10 +263,24 @@ private:
 
     sf::Texture m_texture;
     sf::Sprite *m_shape;
+
+    int getPoints() {
+        if (64 <= s_y and s_y <= 139 or 339 <= s_y and s_y <= 414) {
+            return 1;
+        } else if (139 < s_y and s_y <= 189 or 289 <= s_y and s_y < 339) {
+            return 3;
+        } else if (189 < s_y and s_y <= 224 or 254 <= s_y and s_y < 289) {
+            return 5;
+        } else if (224 <= s_y and s_y <= 254) {
+            return 10;
+        } else
+            return -5;
+    }
 };
 
-void update(sf::RenderWindow &window, Dart &dart, Scoreboard &scoreboard) {
+void update(sf::RenderWindow &window, Dart &dart, Scoreboard &scoreboard, sf::Sprite background) {
     window.clear();
+    window.draw(background);
     window.draw(*scoreboard.getShape());
     window.draw(*dart.getShape());
     window.display();
@@ -283,7 +301,7 @@ bool moveWhenPush(sf::RenderWindow &window, Dart &dart) {
             } else {
                 sf::Mouse::setPosition(sf::Vector2i(500, mouse_position.y), window);
             }
-            update(window, dart, scoreboard);
+            update(window, dart, scoreboard, background);
         }
         return true;
     }
@@ -295,8 +313,13 @@ float getDistance(float x0, float y0, float x1, float y1) {
 }
 
 
-
 int main() {
+    sf::Texture texture;
+    if (!texture.loadFromFile("../img/background.jpg")) {
+        std::cout << "ERROR when loading background.jpg" << std::endl;
+    }
+    background.setTexture(texture);
+
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML_Project", sf::Style::Close);
     window.setFramerateLimit(120);
     Dart dart(250., 150., 102 / 2, 25 / 2, 0, 0);
@@ -338,7 +361,7 @@ int main() {
 
         dart.Move();
 
-        update(window, dart, scoreboard);
+        update(window, dart, scoreboard, background);
 //        std::this_thread::sleep_for(10ms);
         dart.addSelfTime(D_T);
     }
