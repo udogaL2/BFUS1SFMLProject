@@ -20,7 +20,7 @@ include_directories("ext/SFML/include/")	# добавляем директори
 include_directories(inc)
 link_directories("ext/SFML/lib/")
 
-add_executable("${PROJECT_NAME}" WIN32 main.cpp src/Dart.cpp src/Darts_game.cpp src/scoreboard.cpp src/Textbox.cpp)
+add_executable("${PROJECT_NAME}" WIN32 main.cpp src/Dart.cpp src/Darts_game.cpp src/scoreboard.cpp src/Textbox.cpp data/img/app.rc)
 
 target_link_libraries("${PROJECT_NAME}"
 		debug sfml-graphics-s-d
