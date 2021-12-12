@@ -7,7 +7,7 @@ namespace dg {
     }
 
     Scoreboard::~Scoreboard() {
-        deleteMyself();
+        delete textBox;
     }
 
     void Scoreboard::addScore(int score) {

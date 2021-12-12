@@ -34,7 +34,7 @@ namespace dg {
     }
 
     void TextBox::loadFont() {
-        if (!Font.loadFromFile("../ttf/arial.ttf")) {
+        if (!Font.loadFromFile("data/ttf/arial.ttf")) {
             std::cout << "ERROR when loading arial.ttf" << '\n';
         }
     }

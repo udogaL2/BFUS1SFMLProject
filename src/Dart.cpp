@@ -22,11 +22,11 @@ namespace dg {
     }
 
     Dart::~Dart() {
-        deleteMyself();
+        delete m_shape;
     }
 
     bool Dart::uploadTexture() {
-        if (!m_texture.loadFromFile("../img/darts.png")) {
+        if (!m_texture.loadFromFile("data/img/darts.png")) {
             std::cout << "ERROR when loading darts.png" << std::endl;
             return false;
         }

@@ -57,8 +57,6 @@ namespace dg {
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) {
                     window.close();
-                    dart.deleteMyself();
-                    scoreboard.deleteMyself();
                 }
             }
 
@@ -83,8 +81,6 @@ namespace dg {
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
-                dart.deleteMyself();
-                scoreboard.deleteMyself();
             }
 
             dart.Move(scoreboard);
