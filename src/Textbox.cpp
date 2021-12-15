@@ -1,5 +1,4 @@
 #include "../inc/Textbox.h"
-#include "../inc/Darts_game.h"
 
 namespace dg {
     TextBox::TextBox(float x, float y, const std::string &text) {

@@ -81,6 +81,7 @@ namespace dg {
     }
 
     void Dart::Move(Scoreboard & scoreboard) {
+        // если дротик попал в правую часть экрана с мишенью, то начисляем очки и сбрасываем параметры
         if ((s_x + s_w - 30 >= WIDTH and (s_y < 64 or s_y > 414)) or
             (s_x + s_w - 10 >= WIDTH and !(s_y < 64 or s_y > 414))) {
             scoreboard.addScore(getPoints());
@@ -91,6 +92,9 @@ namespace dg {
             this->setStartPosition(250, 150);
             s_t = 0;
             isPushed = false;
+        // иначе проверяем был ли брошен дротик или он находится в стартовой позиции
+        // если его бросили, то меняем координаты и угол по формулам
+        // если он находится в стартовой позиции, то дротик падает до тех пор, пока не врежется в стол
         } else if ((!isPushed and s_y + s_h <= 400) or
                    (isPushed and s_x - s_w + 30 > 0 and s_y - s_h > 0 and s_y + s_h < HEIGHT)) {
             float x = s_x0 + s_v0 * cos(s_angle) * s_t;
@@ -98,6 +102,7 @@ namespace dg {
             this->setPosition(x, y);
             m_shape->setRotation(dg::getAngle(s_x0, s_y0, s_x, s_y) * (180.0 / PI));
         } else {
+            // если дротик попал в другие части экрана, то отнимаем очки и возвращаем в стартовую позицию
             if (isPushed) {
                 scoreboard.addScore(-10);
                 std::this_thread::sleep_for(500ms);
@@ -136,6 +141,7 @@ namespace dg {
     }
 
     int Dart::getPoints() {
+        // обработка попадания по зонам мишени, в зависимости от которой начисляются определенные очки
         if (64 <= s_y and s_y <= 139 or 339 <= s_y and s_y <= 414) {
             return 1;
         } else if (139 < s_y and s_y <= 189 or 289 <= s_y and s_y < 339) {
